@@ -111,7 +111,21 @@ a { color: inherit; text-decoration: none; }
 }
 .header-utility a { color: #C7C7C7; text-decoration: none; display: flex; align-items: center; gap: 6px; }
 .header-utility a:hover { color: var(--gold-soft); }
-.header-utility .line-tag { color: var(--gold-soft); font-weight: 700; }
+
+.social-icons { display: flex; align-items: center; gap: 8px; }
+.header-utility a.social-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  color: #fff;
+  flex-shrink: 0;
+  justify-content: center;
+}
+.header-utility a.social-icon:hover { color: #fff; opacity: 0.85; }
+.social-icon svg { width: 14px; height: 14px; }
+.social-fb { background: #1877F2; }
+.social-yt { background: #FF0000; }
+.social-line { background: #06C755; }
 
 .site-header {
   background: var(--white);
