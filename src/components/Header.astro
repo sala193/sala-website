@@ -9,22 +9,46 @@ const navItems = [
   { href: '/contact', label: '我要賣屋' },
   { href: '/about', label: '關於蔡莎拉' },
 ];
+const currentPath = Astro.url.pathname;
 ---
+<div class="header-utility">
+  <div class="container">
+    <a href="tel:0986793193">📞 0986-793-193</a>
+    <a href="https://line.me/ti/p/@saLa193" target="_blank" rel="noopener"><span class="line-tag">LINE</span> ID：@saLa193</a>
+  </div>
+</div>
 <header class="site-header">
   <div class="container">
     <a class="brand" href="/">
-      <img class="brand-icon" src="/images/brand/sala-icon-mark.png" alt="蔡莎拉 Logo" width="50" height="50" />
-      蔡莎拉<span>｜心選好宅</span>
+      <img class="brand-logo" src="/images/brand/sala-logo-horizontal.png" alt="蔡莎拉｜鶯歌．鳳鳴不動產 × 土地廠房顧問" />
     </a>
-    <nav class="main-nav">
-      {navItems.map((item) => (
-        <a href={item.href}>{item.label}</a>
-      ))}
-    </nav>
-    <div class="header-cta">
-      <a class="btn btn-gold" href="https://line.me/ti/p/@saLa193" target="_blank" rel="noopener">
-        LINE諮詢
-      </a>
+    <div class="header-right">
+      <button class="menu-btn" id="nav-toggle" aria-label="開啟選單" aria-expanded="false" aria-controls="nav-panel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+      <a class="btn btn-gold" href="https://line.me/ti/p/@saLa193" target="_blank" rel="noopener">LINE諮詢</a>
     </div>
   </div>
+  <nav class="nav-panel" id="nav-panel">
+    <div class="nav-grid">
+      {navItems.map((item) => (
+        <a href={item.href} class={item.href === currentPath ? 'current' : ''}>{item.label}</a>
+      ))}
+    </div>
+  </nav>
 </header>
+
+<script>
+  const btn = document.getElementById('nav-toggle');
+  const panel = document.getElementById('nav-panel');
+  if (btn && panel) {
+    btn.addEventListener('click', () => {
+      const isOpen = panel.classList.toggle('open');
+      btn.setAttribute('aria-expanded', String(isOpen));
+    });
+  }
+</script>
