@@ -177,8 +177,10 @@ a { color: inherit; text-decoration: none; }
 
 @media (max-width: 860px) {
   .header-utility .container { justify-content: space-between; padding-left: 20px; padding-right: 20px; }
-  .brand-logo { height: 32px; }
   .nav-grid { grid-template-columns: 1fr; padding: 10px 16px; }
+}
+@media (max-width: 420px) {
+  .brand-logo { height: 40px; }
 }
 
 /* ---------- Hero ---------- */
