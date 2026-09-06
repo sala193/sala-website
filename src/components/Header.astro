@@ -1,0 +1,27 @@
+---
+const navItems = [
+  { href: '/', label: '首頁' },
+  { href: '/find', label: '找房子' },
+  { href: '/communities', label: '社區資料庫' },
+  { href: '/regions', label: '鶯歌．鳳鳴' },
+  { href: '/industrial', label: '土地．廠房' },
+  { href: '/articles', label: '不動產知識' },
+  { href: '/contact', label: '我要賣屋' },
+  { href: '/about', label: '關於蔡莎拉' },
+];
+---
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="/">蔡莎拉<span>｜心選好宅</span></a>
+    <nav class="main-nav">
+      {navItems.map((item) => (
+        <a href={item.href}>{item.label}</a>
+      ))}
+    </nav>
+    <div class="header-cta">
+      <a class="btn btn-gold" href="https://line.me/ti/p/@saLa193" target="_blank" rel="noopener">
+        LINE諮詢
+      </a>
+    </div>
+  </div>
+</header>

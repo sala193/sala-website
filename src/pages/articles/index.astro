@@ -1,0 +1,31 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const articles = (await getCollection('articles')).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
+);
+---
+<BaseLayout title="不動產知識" description="買房、賣房、稅費、法律、土地廠房——蔡莎拉用白話整理的第一線實務內容。">
+  <section class="section">
+    <div class="container">
+      <h1>不動產知識</h1>
+      <p class="section-lead">
+        客戶今天問的問題，就是明天的文章主題。買房、賣房、稅費、法律、土地廠房，五大分類持續更新。
+      </p>
+      <div class="grid">
+        {articles.map((a) => (
+          <a class="card" href={`/articles/${a.slug}`}>
+            <div class="card-body">
+              <p class="card-region">{a.data.category}{a.data.region ? `．${a.data.region}` : ''}</p>
+              <h3>{a.data.title}</h3>
+              <p>{a.data.description}</p>
+              <span class="card-link">閱讀全文 →</span>
+            </div>
+          </a>
+        ))}
+        {articles.length === 0 && <p style="color: var(--text-soft);">文章準備中，敬請期待。</p>}
+      </div>
+    </div>
+  </section>
+</BaseLayout>

@@ -1,0 +1,18 @@
+---
+interface Props {
+  slug: string;
+  community_name: string;
+  region: string;
+  excerpt?: string;
+}
+const { slug, community_name, region, excerpt } = Astro.props;
+---
+<a class="card" href={`/communities/${slug}`}>
+  <div class="card-media">社區照片</div>
+  <div class="card-body">
+    <p class="card-region">{region}</p>
+    <h3>{community_name}</h3>
+    <p>{excerpt || '點進去看蔡莎拉的實際帶看心得與社區完整介紹。'}</p>
+    <span class="card-link">看社區開箱 →</span>
+  </div>
+</a>

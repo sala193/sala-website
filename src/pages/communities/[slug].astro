@@ -1,0 +1,35 @@
+---
+import { getCollection } from 'astro:content';
+import CommunityLayout from '../../layouts/CommunityLayout.astro';
+
+export async function getStaticPaths() {
+  const communities = await getCollection('communities');
+  return communities.map((entry) => ({
+    params: { slug: entry.slug },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await entry.render();
+const d = entry.data;
+---
+<CommunityLayout
+  title={d.title}
+  description={d.title}
+  community_name={d.community_name}
+  region={d.region}
+  developer={d.developer}
+  year_built={d.year_built}
+  address={d.address}
+  units={d.units}
+  floors={d.floors}
+  parking_type={d.parking_type}
+  public_ratio={d.public_ratio}
+  management_fee={d.management_fee}
+  nearby_mrt={d.nearby_mrt}
+  author={d.author}
+  date={d.date}
+>
+  <Content />
+</CommunityLayout>

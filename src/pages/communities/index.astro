@@ -1,0 +1,38 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import CommunityCard from '../../components/CommunityCard.astro';
+import { getCollection } from 'astro:content';
+
+const all = await getCollection('communities');
+const regions = [...new Set(all.map((c) => c.data.region))];
+---
+<BaseLayout title="社區資料庫" description="蔡莎拉整理的鶯歌、鳳鳴社區完整介紹，物件會下架，社區介紹會留下來。">
+  <section class="section">
+    <div class="container">
+      <h1>社區資料庫</h1>
+      <p class="section-lead">
+        每個社區一個永久頁面，收錄基本資料、生活機能、實價行情，跟蔡莎拉實際帶看的第一手觀察。
+      </p>
+
+      {regions.map((region) => {
+        const items = all.filter((c) => c.data.region === region);
+        return (
+          <div style="margin-bottom: 48px;">
+            <h2>{region}</h2>
+            <div class="grid">
+              {items.map((c) => (
+                <CommunityCard
+                  slug={c.slug}
+                  community_name={c.data.community_name}
+                  region={c.data.region}
+                />
+              ))}
+            </div>
+          </div>
+        );
+      })}
+
+      {all.length === 0 && <p style="color: var(--text-soft);">社區內容準備中，敬請期待。</p>}
+    </div>
+  </section>
+</BaseLayout>

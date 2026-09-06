@@ -1,0 +1,97 @@
+---
+import BaseLayout from './BaseLayout.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  community_name: string;
+  region: string;
+  developer?: string;
+  year_built?: number;
+  address?: string;
+  units?: number;
+  floors?: number;
+  parking_type?: string;
+  public_ratio?: string;
+  management_fee?: string;
+  nearby_mrt?: string;
+  author: string;
+  date: Date;
+}
+
+const {
+  title,
+  description,
+  community_name,
+  region,
+  developer,
+  year_built,
+  address,
+  units,
+  floors,
+  parking_type,
+  public_ratio,
+  management_fee,
+  nearby_mrt,
+  author,
+  date,
+} = Astro.props;
+
+const placeSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Place',
+  name: community_name,
+  address: address,
+  additionalProperty: [
+    developer && { '@type': 'PropertyValue', name: '建商', value: developer },
+    year_built && { '@type': 'PropertyValue', name: '完工年份', value: String(year_built) },
+    units && { '@type': 'PropertyValue', name: '戶數', value: String(units) },
+    public_ratio && { '@type': 'PropertyValue', name: '公設比', value: public_ratio },
+  ].filter(Boolean),
+};
+---
+<BaseLayout title={title} description={description}>
+  <article class="section">
+    <div class="container article-layout">
+      <div class="prose">
+        <p class="card-region">{region}．社區開箱</p>
+        <h1>{title}</h1>
+        <p style="color: var(--text-soft); font-size: 0.9rem; margin-top: -0.6em;">
+          撰文：{author} ／ 更新日期：{date.toLocaleDateString('zh-TW')}
+        </p>
+        <slot />
+      </div>
+
+      <aside>
+        <div class="info-card">
+          <h3 style="margin-bottom: 14px;">{community_name}．社區資訊</h3>
+          <dl>
+            {region && <div class="row"><dt>區域</dt><dd>{region}</dd></div>}
+            {developer && <div class="row"><dt>建商</dt><dd>{developer}</dd></div>}
+            {year_built && <div class="row"><dt>完工年份</dt><dd>{year_built}</dd></div>}
+            {address && <div class="row"><dt>地址</dt><dd>{address}</dd></div>}
+            {units && <div class="row"><dt>戶數</dt><dd>{units}</dd></div>}
+            {floors && <div class="row"><dt>樓層</dt><dd>{floors}</dd></div>}
+            {parking_type && <div class="row"><dt>車位</dt><dd>{parking_type}</dd></div>}
+            {public_ratio && <div class="row"><dt>公設比</dt><dd>{public_ratio}</dd></div>}
+            {management_fee && <div class="row"><dt>管理費</dt><dd>{management_fee}</dd></div>}
+            {nearby_mrt && <div class="row"><dt>鄰近捷運</dt><dd>{nearby_mrt}</dd></div>}
+          </dl>
+        </div>
+
+        <div class="info-card" style="margin-top: 20px; text-align: center;">
+          <p style="margin-bottom: 14px; font-weight: 700;">關注這個社區？</p>
+          <a class="btn btn-primary" style="width: 100%; justify-content: center; margin-bottom: 10px;"
+             href="https://line.me/ti/p/@saLa193" target="_blank" rel="noopener">
+            📍 我想買{community_name}
+          </a>
+          <a class="btn btn-outline" style="width: 100%; justify-content: center;" href="/contact">
+            📍 我有{community_name}要出售
+          </a>
+        </div>
+      </aside>
+    </div>
+  </article>
+
+  <script type="application/ld+json" set:html={JSON.stringify(placeSchema)} />
+</BaseLayout>

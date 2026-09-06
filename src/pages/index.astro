@@ -1,0 +1,121 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import CommunityCard from '../components/CommunityCard.astro';
+import { getCollection } from 'astro:content';
+
+const communities = (await getCollection('communities')).slice(0, 3);
+const articles = (await getCollection('articles'))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .slice(0, 3);
+---
+<BaseLayout title="鶯歌．鳳鳴不動產 × 土地廠房顧問">
+  <section class="hero">
+    <div class="container">
+      <div>
+        <p class="hero-eyebrow">桃園・新北 在地不動產顧問</p>
+        <h1>鶯歌・鳳鳴買屋賣屋<br />找蔡莎拉</h1>
+        <p class="lead">
+          從住宅、透天、土地到廠房，2005年入行，近20年第一線實務經驗。
+          鶯歌在地長大，現在也在這裡服務——熟悉的不只是行情，更是這片土地跟這裡的人。
+        </p>
+        <div class="hero-cta">
+          <a class="btn btn-primary" href="https://line.me/ti/p/@saLa193" target="_blank" rel="noopener">LINE 免費諮詢</a>
+          <a class="btn btn-outline" style="border-color:#fff; color:#fff;" href="/communities">看社區資料庫</a>
+        </div>
+        <div class="hero-stats">
+          <div class="hero-stat"><b>近20年</b><span>不動產第一線資歷</span></div>
+          <div class="hero-stat"><b>5大商圈</b><span>鶯歌．鳳鳴．桃園後站．八德．龜山</span></div>
+          <div class="hero-stat"><b>住家～廠房</b><span>一站式服務</span></div>
+        </div>
+      </div>
+      <div class="hero-photo">蔡莎拉專業形象照<br />（置換為實際照片）</div>
+    </div>
+  </section>
+
+  <div class="trust-bar">
+    <div class="container">
+      <span><strong>2005年</strong> 正式入行不動產</span>
+      <span><strong>昱達工商地產 × 永慶集團</strong> 團隊成員</span>
+      <span><strong>鶯歌在地成長</strong> 美基幼稚園．鶯歌國小．鶯歌國中</span>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <h2>熱門社區</h2>
+        <a class="more" href="/communities">看全部社區資料庫 →</a>
+      </div>
+      <p class="section-lead">
+        物件會下架，但社區介紹會留下來。每個社區都是蔡莎拉實際帶看過的第一手觀察。
+      </p>
+      <div class="grid">
+        {communities.map((c) => (
+          <CommunityCard
+            slug={c.slug}
+            community_name={c.data.community_name}
+            region={c.data.region}
+          />
+        ))}
+        {communities.length === 0 && (
+          <p style="color: var(--text-soft);">社區內容準備中，敬請期待。</p>
+        )}
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-alt">
+    <div class="container">
+      <div class="section-head"><h2>蔡莎拉的三條服務主線</h2></div>
+      <div class="grid">
+        <div class="pillar">
+          <h3>🏠 鶯歌．鳳鳴在地</h3>
+          <p>社區、房價、生活圈、買賣攻略。在地成長，熟悉這裡的每一條巷弄。</p>
+        </div>
+        <div class="pillar">
+          <h3>🏭 土地．廠房</h3>
+          <p>工業地、廠房、農地、倉庫、商用不動產。昱達工商地產團隊資源，一站式處理。</p>
+        </div>
+        <div class="pillar">
+          <h3>👩‍💼 關於蔡莎拉</h3>
+          <p>近20年經歷、服務理念、實務案例。好壞都說清楚，不只是把房子賣掉而已。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <h2>莎拉說房市</h2>
+        <a class="more" href="/articles">看全部文章 →</a>
+      </div>
+      <div class="grid">
+        {articles.map((a) => (
+          <a class="card" href={`/articles/${a.slug}`}>
+            <div class="card-body">
+              <p class="card-region">{a.data.category}{a.data.region ? `．${a.data.region}` : ''}</p>
+              <h3>{a.data.title}</h3>
+              <p>{a.data.description}</p>
+              <span class="card-link">閱讀全文 →</span>
+            </div>
+          </a>
+        ))}
+        {articles.length === 0 && (
+          <p style="color: var(--text-soft);">文章準備中，敬請期待。</p>
+        )}
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-band">
+    <div class="container">
+      <h2>先誠實，再成交</h2>
+      <p>不知道房子現在值多少？想找適合的土地或廠房？歡迎直接跟蔡莎拉聊聊。</p>
+      <div class="hero-cta" style="justify-content:center;">
+        <a class="btn btn-gold" href="https://line.me/ti/p/@saLa193" target="_blank" rel="noopener">LINE 免費諮詢</a>
+        <a class="btn btn-outline" style="border-color:#fff; color:#fff;" href="/contact">我要賣屋</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

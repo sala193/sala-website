@@ -1,0 +1,52 @@
+# Decap CMS 設定檔
+# ⚠️ backend 這段需要先完成 GitHub OAuth 設定才能真的登入使用，
+#    詳細步驟見專案 README「後台設定（Decap CMS）」。
+backend:
+  name: github
+  repo: sala193/sala-website
+  branch: main
+
+media_folder: "public/images"
+public_folder: "/images"
+
+collections:
+  - name: "communities"
+    label: "社區資料庫"
+    folder: "src/content/communities"
+    create: true
+    slug: "{{fields.community_name}}"
+    fields:
+      - { label: "標題（開箱文標題）", name: "title", widget: "string" }
+      - { label: "社區名稱", name: "community_name", widget: "string" }
+      - { label: "區域", name: "region", widget: "string" }
+      - { label: "建商", name: "developer", widget: "string", required: false }
+      - { label: "完工年份", name: "year_built", widget: "number", required: false }
+      - { label: "地址", name: "address", widget: "string", required: false }
+      - { label: "戶數", name: "units", widget: "number", required: false }
+      - { label: "樓層", name: "floors", widget: "number", required: false }
+      - { label: "車位類型", name: "parking_type", widget: "string", required: false }
+      - { label: "公設比", name: "public_ratio", widget: "string", required: false }
+      - { label: "管理費", name: "management_fee", widget: "string", required: false }
+      - { label: "鄰近捷運", name: "nearby_mrt", widget: "string", required: false }
+      - { label: "撰文者", name: "author", widget: "string", default: "蔡莎拉" }
+      - { label: "日期", name: "date", widget: "datetime" }
+      - { label: "標籤", name: "tags", widget: "list", required: false }
+      - { label: "內文（開箱文）", name: "body", widget: "markdown" }
+
+  - name: "articles"
+    label: "不動產知識"
+    folder: "src/content/articles"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { label: "標題", name: "title", widget: "string" }
+      - { label: "摘要", name: "description", widget: "string", required: false }
+      - { label: "區域", name: "region", widget: "string", required: false }
+      - label: "分類"
+        name: "category"
+        widget: "select"
+        options: ["買房", "賣房", "稅費", "法律", "土地廠房", "新聞時事"]
+      - { label: "撰文者", name: "author", widget: "string", default: "蔡莎拉" }
+      - { label: "日期", name: "date", widget: "datetime" }
+      - { label: "標籤", name: "tags", widget: "list", required: false }
+      - { label: "內文", name: "body", widget: "markdown" }

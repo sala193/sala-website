@@ -1,0 +1,58 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout title="我要賣屋" description="免費行情評估，蔡莎拉協助整理近期成交行情，評估市場價格與銷售策略。">
+  <section class="section">
+    <div class="container" style="max-width: 640px;">
+      <h1>想知道您的房子現在值多少？</h1>
+      <p class="section-lead">
+        不知道現在行情？不知道應該開多少？不知道附近最近成交多少？
+        提供基本資料，蔡莎拉協助整理近期成交行情，評估市場價格與銷售策略。
+      </p>
+
+      <!--
+        TODO：這個表單目前沒有接收後端。
+        建議申請一個免費表單服務（例如 Formspree 或 Web3Forms），
+        拿到專屬的 action 網址後貼到下面這行的 action="" 裡即可收到通知信。
+      -->
+      <form class="info-card" action="" method="POST" style="display:flex; flex-direction:column; gap:14px;">
+        <label>
+          姓名
+          <input type="text" name="name" required style="width:100%; padding:10px; margin-top:4px; border:1px solid var(--line); border-radius:4px;" />
+        </label>
+        <label>
+          LINE 或電話
+          <input type="text" name="contact" required style="width:100%; padding:10px; margin-top:4px; border:1px solid var(--line); border-radius:4px;" />
+        </label>
+        <label>
+          社區或路段
+          <input type="text" name="location" style="width:100%; padding:10px; margin-top:4px; border:1px solid var(--line); border-radius:4px;" />
+        </label>
+        <label>
+          房屋類型
+          <select name="type" style="width:100%; padding:10px; margin-top:4px; border:1px solid var(--line); border-radius:4px;">
+            <option>電梯大樓</option>
+            <option>公寓</option>
+            <option>透天／別墅</option>
+            <option>店面</option>
+            <option>土地</option>
+            <option>廠房／倉庫</option>
+            <option>其他</option>
+          </select>
+        </label>
+        <label>
+          需求
+          <textarea name="message" rows="3" style="width:100%; padding:10px; margin-top:4px; border:1px solid var(--line); border-radius:4px;"></textarea>
+        </label>
+        <button class="btn btn-primary" type="submit">送出，讓蔡莎拉幫我評估</button>
+      </form>
+
+      <p style="text-align:center; margin-top: 24px; color: var(--text-soft);">
+        也可以直接
+        <a href="https://line.me/ti/p/@saLa193" target="_blank" rel="noopener" style="color: var(--brick); font-weight:700;">加LINE免費諮詢</a>
+        或撥打
+        <a href="tel:0986793193" style="color: var(--brick); font-weight:700;">0986-793-193</a>
+      </p>
+    </div>
+  </section>
+</BaseLayout>
