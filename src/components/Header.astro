@@ -12,7 +12,10 @@ const navItems = [
 ---
 <header class="site-header">
   <div class="container">
-    <a class="brand" href="/">蔡莎拉<span>｜心選好宅</span></a>
+    <a class="brand" href="/">
+      <img class="brand-icon" src="/images/brand/sala-icon-mark.png" alt="蔡莎拉 Logo" width="50" height="50" />
+      蔡莎拉<span>｜心選好宅</span>
+    </a>
     <nav class="main-nav">
       {navItems.map((item) => (
         <a href={item.href}>{item.label}</a>

@@ -10,10 +10,13 @@ interface Props {
 
 const {
   title,
-  description = '蔡莎拉｜鶯歌．鳳鳴不動產 × 土地廠房顧問。2005年入行,近20年在地資歷,住家、店面、土地、廠房一站式服務。',
+  description = '蔡莎拉｜鶯歌．鳳鳴不動產 × 土地廠房顧問。專營鶯歌、鳳鳴重劃區，提供住宅、店面、土地、廠房買賣與租賃服務，誠信專業、在地深耕，用心為您找到更好的家。',
 } = Astro.props;
 
-const pageTitle = `${title}｜蔡莎拉 心選好宅`;
+const isHome = Astro.url.pathname === '/';
+const pageTitle = isHome
+  ? '蔡莎拉｜鶯歌．鳳鳴不動產 × 土地廠房顧問'
+  : `${title}｜蔡莎拉 心選好宅`;
 ---
 <!doctype html>
 <html lang="zh-Hant">
@@ -23,6 +26,7 @@ const pageTitle = `${title}｜蔡莎拉 心選好宅`;
     <title>{pageTitle}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
+    <link rel="icon" href="/images/brand/favicon.png" />
 
     <!-- Open Graph -->
     <meta property="og:title" content={pageTitle} />
