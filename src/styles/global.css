@@ -366,6 +366,18 @@ blockquote.sala-says::before {
 @media (max-width: 860px) { .footer-grid { grid-template-columns: 1fr; } }
 .footer-grid a { display: block; margin-bottom: 8px; color: #C7C7C7; }
 .footer-grid a:hover { color: var(--gold-soft); }
+.footer-legal {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  padding: 22px 0;
+  border-top: 1px solid rgba(255,255,255,0.12);
+  font-size: 0.78rem;
+  line-height: 1.7;
+  color: #8A8F9C;
+}
+@media (max-width: 860px) { .footer-legal { grid-template-columns: 1fr; gap: 16px; } }
+.footer-legal h5 { color: #C7C7C7; font-size: 0.85rem; font-weight: 700; margin: 0 0 6px; }
 .footer-bottom {
   border-top: 1px solid rgba(255,255,255,0.12);
   padding-top: 18px;
