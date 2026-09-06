@@ -10,6 +10,7 @@ floors: 9
 parking_type: 平面式（56個）
 public_ratio: "33.21%"
 nearby_mrt: 三鶯線鳳鳴站（興建中，直線距離約900公尺）
+cover_image: /images/communities/senqing.jpg
 author: 蔡莎拉
 date: 2026-09-06
 tags: ["鳳鳴", "森聯之王", "電梯大樓"]

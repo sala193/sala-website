@@ -4,11 +4,14 @@ interface Props {
   community_name: string;
   region: string;
   excerpt?: string;
+  cover_image?: string;
 }
-const { slug, community_name, region, excerpt } = Astro.props;
+const { slug, community_name, region, excerpt, cover_image } = Astro.props;
 ---
 <a class="card" href={`/communities/${slug}`}>
-  <div class="card-media">社區照片</div>
+  <div class="card-media">
+    {cover_image ? <img src={cover_image} alt={community_name} /> : '社區照片'}
+  </div>
   <div class="card-body">
     <p class="card-region">{region}</p>
     <h3>{community_name}</h3>

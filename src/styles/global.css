@@ -321,7 +321,9 @@ a { color: inherit; text-decoration: none; }
   justify-content: center;
   color: #B8AD97;
   font-size: 0.85rem;
+  overflow: hidden;
 }
+.card-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .card-body { padding: 18px 20px 22px; flex: 1; display: flex; flex-direction: column; }
 .card-region {
   font-size: 0.78rem;
@@ -369,6 +371,14 @@ blockquote.sala-says::before {
 }
 .prose h2 { margin-top: 1.6em; }
 .prose img { max-width: 100%; border-radius: var(--radius); }
+.community-cover {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: var(--radius);
+  margin-bottom: 20px;
+  display: block;
+}
 
 /* ---------- 社區/物件資訊卡(側欄) ---------- */
 .info-card {

@@ -15,6 +15,7 @@ interface Props {
   public_ratio?: string;
   management_fee?: string;
   nearby_mrt?: string;
+  cover_image?: string;
   author: string;
   date: Date;
 }
@@ -33,6 +34,7 @@ const {
   public_ratio,
   management_fee,
   nearby_mrt,
+  cover_image,
   author,
   date,
 } = Astro.props;
@@ -54,6 +56,9 @@ const placeSchema = {
   <article class="section">
     <div class="container article-layout">
       <div class="prose">
+        {cover_image && (
+          <img src={cover_image} alt={community_name} class="community-cover" />
+        )}
         <p class="card-region">{region}．社區開箱</p>
         <h1>{title}</h1>
         <p style="color: var(--text-soft); font-size: 0.9rem; margin-top: -0.6em;">
