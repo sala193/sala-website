@@ -41,21 +41,22 @@ const sorted = [...listings].sort((a, b) => (a.price ?? 999999) - (b.price ?? 99
               data-type={item.type || ''}
               data-price={item.price ?? 0}
             >
-              <a class="card-link" href={item.url} target="_blank" rel="noopener">
-                <div class="badge-row">
-                  {item.isNew && <span class="badge badge-new">新上</span>}
-                  {item.isHot && <span class="badge badge-hot">強打</span>}
+              <a class="card-link" href={`/find/${item.id}`}>
+                <div class="card-photo">
+                  {item.image ? (
+                    <img src={item.image} alt={item.name || '待售物件'} loading="lazy" />
+                  ) : (
+                    <div class="no-photo">尚無照片</div>
+                  )}
+                  <div class="badge-row">
+                    {item.isNew && <span class="badge badge-new">新上</span>}
+                    {item.isHot && <span class="badge badge-hot">強打</span>}
+                  </div>
+                  {item.originalPrice && <span class="badge badge-discount">降價</span>}
                 </div>
-                {item.type && <div class="listing-type">{item.type}</div>}
-                <div class="listing-name">{item.name || '（案名整理中）'}</div>
-                <div class="listing-address">{item.address || ''}</div>
-                <div class="listing-meta">
-                  {item.rooms && <span>{item.rooms}</span>}
-                  {item.buildingPing && <span>建物 {item.buildingPing} 坪</span>}
-                  {item.age !== null && <span>屋齡 {item.age} 年</span>}
-                </div>
-                <div class="listing-footer">
-                  <div>
+                <div class="card-body">
+                  <div class="listing-name">{item.name || '（案名整理中）'}</div>
+                  <div class="listing-footer">
                     {item.originalPrice && (
                       <span class="price-original">{item.originalPrice} 萬</span>
                     )}
@@ -63,7 +64,6 @@ const sorted = [...listings].sort((a, b) => (a.price ?? 999999) - (b.price ?? 99
                       {item.price ? `${item.price} 萬` : '價格洽詢'}
                     </span>
                   </div>
-                  <span class="case-no">{item.caseNo}</span>
                 </div>
               </a>
             </div>
@@ -179,8 +179,7 @@ const sorted = [...listings].sort((a, b) => (a.price ?? 999999) - (b.price ?? 99
     border: 1px solid var(--line);
     background: var(--white);
     border-radius: var(--radius);
-    display: flex;
-    flex-direction: column;
+    overflow: hidden;
     transition: box-shadow 0.15s, transform 0.15s;
   }
   .listing-card:hover {
@@ -193,17 +192,38 @@ const sorted = [...listings].sort((a, b) => (a.price ?? 999999) - (b.price ?? 99
     display: flex;
     flex-direction: column;
     height: 100%;
-    padding: 18px;
+  }
+  .card-photo {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    background: var(--paper-deep);
+  }
+  .card-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .no-photo {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #B8AD97;
+    font-size: 0.85rem;
   }
   .badge-row {
+    position: absolute;
+    top: 10px;
+    left: 10px;
     display: flex;
     gap: 6px;
-    margin-bottom: 8px;
   }
   .badge {
     font-size: 11px;
     font-weight: 700;
-    padding: 2px 8px;
+    padding: 3px 9px;
     border-radius: 2px;
   }
   .badge-new {
@@ -214,45 +234,36 @@ const sorted = [...listings].sort((a, b) => (a.price ?? 999999) - (b.price ?? 99
     background: #f6e9dc;
     color: var(--brick);
   }
-  .listing-type {
-    font-size: 12px;
-    color: var(--gold);
-    font-weight: 700;
-    margin-bottom: 4px;
+  .badge-discount {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: var(--brick);
+    color: var(--white);
+  }
+  .card-body {
+    padding: 14px 16px 16px;
   }
   .listing-name {
     font-family: var(--font-display);
-    font-size: 17px;
+    font-size: 16px;
     font-weight: 700;
     line-height: 1.4;
-    margin-bottom: 6px;
-    min-height: 2.8em;
+    margin-bottom: 10px;
     color: var(--ink);
-  }
-  .listing-address {
-    font-size: 12.5px;
-    color: var(--text-soft);
-    margin-bottom: 12px;
-  }
-  .listing-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px 14px;
-    font-size: 12.5px;
-    color: var(--text-soft);
-    margin-bottom: 14px;
-    border-top: 1px dashed var(--line);
-    padding-top: 10px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
   .listing-footer {
-    margin-top: auto;
     display: flex;
     align-items: baseline;
-    justify-content: space-between;
+    gap: 8px;
   }
   .price {
     font-family: var(--font-display);
-    font-size: 22px;
+    font-size: 21px;
     font-weight: 700;
     color: var(--brick);
   }
@@ -260,12 +271,6 @@ const sorted = [...listings].sort((a, b) => (a.price ?? 999999) - (b.price ?? 99
     font-size: 12.5px;
     color: var(--text-soft);
     text-decoration: line-through;
-    margin-right: 6px;
-  }
-  .case-no {
-    font-size: 11px;
-    color: var(--text-soft);
-    opacity: 0.7;
   }
   .empty {
     padding: 60px 20px;

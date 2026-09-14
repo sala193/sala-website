@@ -1,0 +1,171 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import listings from '../../data/listings.json';
+
+export function getStaticPaths() {
+  const byId = new Map();
+  for (const item of listings) {
+    if (!byId.has(item.id)) byId.set(item.id, item);
+  }
+  return [...byId.values()].map((item) => ({
+    params: { id: item.id },
+    props: { item },
+  }));
+}
+
+const { item } = Astro.props;
+
+// 依「實際受託門市」標示對應經紀業全名(依不動產經紀業管理條例第21條第2項),
+// 不是蔡莎拉當下輪調到哪一店 —— 這裡用物件實際來源的門市(item.store)對應正確資訊。
+const STORE_LICENSE = {
+  '0226776996': {
+    storeLabel: '永慶鶯歌建國捷運加盟店',
+    lines: ['經紀業：廣輝不動產有限公司', '經紀人：簡梅芳（111）新北經字第003924號', '營業員：蔡茹儀（100）登字第181761號'],
+  },
+  '0226772282': {
+    storeLabel: '永慶鶯歌鳳鳴站前加盟店',
+    lines: ['經紀業：誠輝不動產有限公司', '經紀人：張捷誠（114）新北經字第004766號'],
+  },
+};
+const license = STORE_LICENSE[item.store] ?? null;
+
+const title = item.name || '待售物件';
+const description = `${item.type || ''} ${item.address || ''} ${item.price ? item.price + '萬' : ''}｜蔡莎拉為您服務，歡迎聯繫看屋`.trim();
+---
+
+<BaseLayout title={title} description={description}>
+  <article class="section">
+    <div class="container article-layout">
+      <div class="prose">
+        {item.image ? (
+          <img src={item.image} alt={title} class="community-cover" />
+        ) : (
+          <div class="no-photo-hero">尚無照片</div>
+        )}
+
+        <p class="card-region">
+          {item.type} {item.address && `．${item.address}`}
+        </p>
+        <h1>{title}</h1>
+
+        <div class="price-block">
+          {item.originalPrice && <span class="price-original">{item.originalPrice} 萬</span>}
+          <span class="price">{item.price ? `${item.price} 萬` : '價格洽詢'}</span>
+        </div>
+
+        <p class="disclaimer">
+          物件資料每日自動同步自永慶房仲網公開頁面，僅供參考，實際坪數、格局、產權狀況以現場勘查及地政資料為準。
+        </p>
+      </div>
+
+      <aside>
+        <div class="info-card">
+          <h3 style="margin-bottom: 14px;">物件資訊</h3>
+          <dl>
+            {item.type && <div class="row"><dt>類型</dt><dd>{item.type}</dd></div>}
+            {item.address && <div class="row"><dt>地址</dt><dd>{item.address}</dd></div>}
+            {item.rooms && <div class="row"><dt>格局</dt><dd>{item.rooms}</dd></div>}
+            {!!item.buildingPing && <div class="row"><dt>建物</dt><dd>{item.buildingPing} 坪</dd></div>}
+            {!!item.landPing && <div class="row"><dt>土地</dt><dd>{item.landPing} 坪</dd></div>}
+            {item.age !== null && <div class="row"><dt>屋齡</dt><dd>{item.age} 年</dd></div>}
+            {item.caseNo && <div class="row"><dt>案件編號</dt><dd>{item.caseNo}</dd></div>}
+          </dl>
+        </div>
+
+        <div class="info-card" style="margin-top: 20px; text-align: center;">
+          <p style="margin-bottom: 14px; font-weight: 700;">想看這間房子？</p>
+          <p style="margin-bottom: 14px; color: var(--text-soft); font-size: 0.9rem;">
+            服務窗口：蔡莎拉<br />
+            0986-793-193
+          </p>
+          <a
+            class="btn btn-primary"
+            style="width: 100%; justify-content: center; margin-bottom: 10px;"
+            href="https://line.me/ti/p/@saLa193"
+            target="_blank"
+            rel="noopener"
+          >
+            LINE 預約看屋
+          </a>
+          <a class="btn btn-outline" style="width: 100%; justify-content: center;" href="tel:0986793193">
+            📞 直接來電
+          </a>
+        </div>
+
+        {license && (
+          <div class="info-card license-note" style="margin-top: 20px;">
+            <h5>{license.storeLabel}</h5>
+            <p>
+              {license.lines.map((line) => (
+                <>
+                  {line}
+                  <br />
+                </>
+              ))}
+            </p>
+          </div>
+        )}
+
+        <a href="/find" class="back-link">← 回待售物件列表</a>
+      </aside>
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .no-photo-hero {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    border-radius: var(--radius);
+    margin-bottom: 20px;
+    background: var(--paper-deep);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #B8AD97;
+  }
+  .price-block {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .price-block .price {
+    font-family: var(--font-display);
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--brick);
+  }
+  .price-block .price-original {
+    font-size: 15px;
+    color: var(--text-soft);
+    text-decoration: line-through;
+  }
+  .disclaimer {
+    font-size: 0.82rem;
+    color: var(--text-soft);
+    border-top: 1px dashed var(--line);
+    padding-top: 16px;
+    margin-top: 8px;
+  }
+  .license-note h5 {
+    font-size: 0.85rem;
+    margin: 0 0 8px;
+    color: var(--ink);
+  }
+  .license-note p {
+    font-size: 0.78rem;
+    line-height: 1.7;
+    color: var(--text-soft);
+    margin: 0;
+  }
+  .back-link {
+    display: inline-block;
+    margin-top: 20px;
+    font-size: 0.9rem;
+    color: var(--text-soft);
+  }
+  .back-link:hover {
+    color: var(--brick);
+  }
+</style>

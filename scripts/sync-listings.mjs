@@ -118,8 +118,19 @@ const CITY_PREFIXES = [
   '連江縣'
 ];
 
+function extractImage(block) {
+  const m = block.match(/<img[^>]+src="([^"]+)"/);
+  if (!m) return null;
+  let src = m[1].replace(/&amp;/g, '&');
+  if (src.startsWith('//')) src = `https:${src}`;
+  // 官網圖片是縮圖代理服務,預設寬度只有 240px,卡片/詳情頁用起來太模糊,
+  // 把 width 參數加大到 640(測試過這個代理服務支援任意寬度,一樣回 200)。
+  return src.replace(/([?&])width=\d+/, '$1width=640');
+}
+
 function parseBlock(id, block, store) {
   const text = stripTags(block);
+  const image = extractImage(block);
 
   const caseNoMatch = text.match(/YC\d{6,9}/);
   const priceMatches = [...text.matchAll(/([\d,]{3,})\s*萬/g)].map((m) =>
@@ -187,6 +198,7 @@ function parseBlock(id, block, store) {
     discountPercent: discountMatch ? parseFloat(discountMatch[1]) : null,
     isNew,
     isHot,
+    image,
     url: `https://buy.yungching.com.tw/house/${id}`
   };
 }
