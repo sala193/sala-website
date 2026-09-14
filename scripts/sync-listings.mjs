@@ -11,6 +11,9 @@
  * 支援同時抓多間門市(目前是鶯歌建國捷運店 + 鳳鳴站前店),
  * 每筆物件會標上 store / storeName,方便在頁面上分辨或篩選。
  *
+ * 每筆物件除了列表頁的基本資料外,還會另外抓一次該物件的詳情頁,
+ * 取得完整相簿(images 陣列),不是只有列表頁那張縮圖。
+ *
  * 注意:這支程式解析的是門市「公開」列表頁,任何人不用登入都看得到,
  * 跟樂屋網後台「複製外網物件」功能做的事情一樣 —— 都是從永慶官網公開頁面取資料。
  * 沒有使用任何帳號密碼,也沒有連進後台系統。
@@ -67,6 +70,36 @@ function stripTags(html) {
     .replace(/&ldquo;|&rdquo;/g, '"')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+async function fetchDetailImages(id) {
+  const url = `https://buy.yungching.com.tw/house/${id}`;
+  const res = await fetch(url, {
+    headers: {
+      'User-Agent':
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36'
+    }
+  });
+  if (!res.ok) {
+    throw new Error(`抓取詳情頁失敗 ${url} -> HTTP ${res.status}`);
+  }
+  const html = await res.text();
+
+  // 詳情頁相簿的每張圖都在 block_name="buy_buydetail_photos" 的區塊裡,
+  // 用這個標記精準鎖定「這個物件自己的照片」,避免抓到頁面下方推薦的其他物件圖片。
+  const re = /block_name="buy_buydetail_photos"[\s\S]{0,400}?src="([^"]+)"/g;
+  const seenKeys = new Set();
+  const images = [];
+  let m;
+  while ((m = re.exec(html))) {
+    let src = m[1].replace(/&amp;/g, '&');
+    if (src.startsWith('//')) src = `https:${src}`;
+    const key = src.match(/key=([^&]+)/)?.[1] ?? src;
+    if (seenKeys.has(key)) continue;
+    seenKeys.add(key);
+    images.push(src);
+  }
+  return images;
 }
 
 function extractMaxPage(html) {
@@ -261,6 +294,38 @@ async function main() {
   const dedup = new Map();
   for (const item of all) dedup.set(`${item.store}-${item.id}`, item);
   const listings = [...dedup.values()];
+
+  // 列表頁只有一張縮圖,要看到物件完整相簿要另外抓每一筆的詳情頁。
+  // 這會多打 N 個請求(N = 物件數),所以每筆之間都放慢一下,對官網禮貌一點。
+  console.log(`\n開始抓取 ${listings.length} 筆物件的完整相簿…`);
+  for (let i = 0; i < listings.length; i++) {
+    const item = listings[i];
+    try {
+      const images = await fetchDetailImages(item.id);
+      if (images.length) {
+        // 詳情頁相簿的第一張不一定是外觀封面照(有些物件第一張是格局圖)。
+        // 列表頁縮圖(item.image)才是永慶官網自己選定的封面照,
+        // 把它對應的那張圖找出來、強制排到相簿最前面,卡片跟詳情頁大圖才會一致。
+        const coverKey = item.image?.match(/key=([^&]+)/)?.[1];
+        const coverIdx = coverKey ? images.findIndex((u) => u.includes(coverKey)) : -1;
+        if (coverIdx > 0) {
+          const [cover] = images.splice(coverIdx, 1);
+          images.unshift(cover);
+        }
+        item.images = images;
+        item.image = images[0];
+      } else {
+        item.images = item.image ? [item.image] : [];
+      }
+    } catch (err) {
+      console.warn(`  第 ${i + 1}/${listings.length} 筆(${item.id})相簿抓取失敗:${err.message}`);
+      item.images = item.image ? [item.image] : [];
+    }
+    if ((i + 1) % 20 === 0 || i === listings.length - 1) {
+      console.log(`  已完成 ${i + 1}/${listings.length}`);
+    }
+    await new Promise((r) => setTimeout(r, 400));
+  }
 
   await mkdir(path.dirname(OUTPUT_PATH), { recursive: true });
   await writeFile(OUTPUT_PATH, JSON.stringify(listings, null, 2), 'utf-8');

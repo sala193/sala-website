@@ -15,19 +15,21 @@ export function getStaticPaths() {
 
 const { item } = Astro.props;
 
-// 依「實際受託門市」標示對應經紀業全名(依不動產經紀業管理條例第21條第2項),
-// 不是蔡莎拉當下輪調到哪一店 —— 這裡用物件實際來源的門市(item.store)對應正確資訊。
-const STORE_LICENSE = {
-  '0226776996': {
+// 法規揭露(依不動產經紀業管理條例第21條第2項):兩間門市的經紀業/經紀人資訊,
+// 統一列在每個物件頁面下方。
+const LEGAL_DISCLOSURE = [
+  {
     storeLabel: '永慶鶯歌建國捷運加盟店',
-    lines: ['經紀業：廣輝不動產有限公司', '經紀人：簡梅芳（111）新北經字第003924號', '營業員：蔡茹儀（100）登字第181761號'],
+    lines: ['經紀業：廣輝不動產有限公司', '經紀人：簡梅芳（111）新北經字第003924號'],
   },
-  '0226772282': {
+  {
     storeLabel: '永慶鶯歌鳳鳴站前加盟店',
     lines: ['經紀業：誠輝不動產有限公司', '經紀人：張捷誠（114）新北經字第004766號'],
   },
-};
-const license = STORE_LICENSE[item.store] ?? null;
+];
+const AGENT_LINE = '營業員：蔡茹儀（100）登字第181761號';
+
+const images = item.images?.length ? item.images : item.image ? [item.image] : [];
 
 const title = item.name || '待售物件';
 const description = `${item.type || ''} ${item.address || ''} ${item.price ? item.price + '萬' : ''}｜蔡莎拉為您服務，歡迎聯繫看屋`.trim();
@@ -37,8 +39,8 @@ const description = `${item.type || ''} ${item.address || ''} ${item.price ? ite
   <article class="section">
     <div class="container article-layout">
       <div class="prose">
-        {item.image ? (
-          <img src={item.image} alt={title} class="community-cover" />
+        {images.length ? (
+          <img src={images[0]} alt={title} class="community-cover" />
         ) : (
           <div class="no-photo-hero">尚無照片</div>
         )}
@@ -53,9 +55,15 @@ const description = `${item.type || ''} ${item.address || ''} ${item.price ? ite
           <span class="price">{item.price ? `${item.price} 萬` : '價格洽詢'}</span>
         </div>
 
-        <p class="disclaimer">
-          物件資料每日自動同步自永慶房仲網公開頁面，僅供參考，實際坪數、格局、產權狀況以現場勘查及地政資料為準。
-        </p>
+        {images.length > 1 && (
+          <div class="photo-grid">
+            {images.slice(1).map((src) => (
+              <a href={src} target="_blank" rel="noopener">
+                <img src={src} alt={title} loading="lazy" />
+              </a>
+            ))}
+          </div>
+        )}
       </div>
 
       <aside>
@@ -92,19 +100,23 @@ const description = `${item.type || ''} ${item.address || ''} ${item.price ? ite
           </a>
         </div>
 
-        {license && (
-          <div class="info-card license-note" style="margin-top: 20px;">
-            <h5>{license.storeLabel}</h5>
-            <p>
-              {license.lines.map((line) => (
-                <>
-                  {line}
-                  <br />
-                </>
-              ))}
-            </p>
-          </div>
-        )}
+        <div class="info-card license-note" style="margin-top: 20px;">
+          <h5>法規揭露</h5>
+          {LEGAL_DISCLOSURE.map((store) => (
+            <>
+              <p class="store-label">{store.storeLabel}</p>
+              <p>
+                {store.lines.map((line) => (
+                  <>
+                    {line}
+                    <br />
+                  </>
+                ))}
+              </p>
+            </>
+          ))}
+          <p>{AGENT_LINE}</p>
+        </div>
 
         <a href="/find" class="back-link">← 回待售物件列表</a>
       </aside>
@@ -141,17 +153,34 @@ const description = `${item.type || ''} ${item.address || ''} ${item.price ? ite
     color: var(--text-soft);
     text-decoration: line-through;
   }
-  .disclaimer {
-    font-size: 0.82rem;
-    color: var(--text-soft);
-    border-top: 1px dashed var(--line);
-    padding-top: 16px;
+  .photo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 8px;
     margin-top: 8px;
+  }
+  .photo-grid a {
+    aspect-ratio: 4 / 3;
+    display: block;
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .photo-grid img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
   }
   .license-note h5 {
     font-size: 0.85rem;
-    margin: 0 0 8px;
+    margin: 0 0 10px;
     color: var(--ink);
+  }
+  .license-note .store-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 10px 0 2px;
   }
   .license-note p {
     font-size: 0.78rem;
