@@ -1,16 +1,293 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import listings from '../data/listings.json';
+
+const types = [...new Set(listings.map((l) => l.type).filter(Boolean))];
+const total = listings.length;
+const sorted = [...listings].sort((a, b) => (a.price ?? 999999) - (b.price ?? 999999));
 ---
-<BaseLayout title="找房子" description="蔡莎拉的物件搜尋功能建置中，歡迎先透過LINE直接詢問。">
-  <section class="stub">
+
+<BaseLayout
+  title="待售物件"
+  description="蔡莎拉 永慶不動產鶯歌建國捷運加盟店・鳳鳴站前加盟店 待售物件即時更新，住宅、店面、土地、廠房買賣資訊，歡迎聯繫看屋。"
+>
+  <section class="find-house">
     <div class="container">
-      <h1>找房子｜物件頁面建置中</h1>
-      <p>
-        物件資料庫跟搜尋功能正在規劃中（下一步會用跟社區頁一樣的模板方式建置，
-        並加上到期下架的機制）。現階段歡迎先透過LINE告訴蔡莎拉你的需求，
-        會直接幫你比對手上跟團隊裡的物件。
-      </p>
-      <a class="btn btn-primary" href="https://line.me/ti/p/@saLa193" target="_blank" rel="noopener">LINE 詢問物件</a>
+      <header class="page-head">
+        <h1>待售物件</h1>
+        <p>蔡莎拉 · 永慶不動產鶯歌建國捷運加盟店 ‧ 鳳鳴站前加盟店 · 資料每日自動同步，實際成交狀況請來電確認</p>
+      </header>
+
+      <div class="toolbar">
+        <input type="text" id="searchInput" placeholder="搜尋案名 / 地址" />
+        <select id="typeFilter">
+          <option value="">全部類型</option>
+          {types.map((t) => <option value={t}>{t}</option>)}
+        </select>
+        <select id="sortSelect">
+          <option value="price-asc">總價：低到高</option>
+          <option value="price-desc">總價：高到低</option>
+        </select>
+        <span class="count-badge" id="countBadge">{total} 筆物件</span>
+      </div>
+
+      <div class="listing-grid" id="grid">
+        {
+          sorted.map((item) => (
+            <div
+              class="listing-card"
+              data-name={item.name || ''}
+              data-address={item.address || ''}
+              data-type={item.type || ''}
+              data-price={item.price ?? 0}
+            >
+              <a class="card-link" href={item.url} target="_blank" rel="noopener">
+                <div class="badge-row">
+                  {item.isNew && <span class="badge badge-new">新上</span>}
+                  {item.isHot && <span class="badge badge-hot">強打</span>}
+                </div>
+                {item.type && <div class="listing-type">{item.type}</div>}
+                <div class="listing-name">{item.name || '（案名整理中）'}</div>
+                <div class="listing-address">{item.address || ''}</div>
+                <div class="listing-meta">
+                  {item.rooms && <span>{item.rooms}</span>}
+                  {item.buildingPing && <span>建物 {item.buildingPing} 坪</span>}
+                  {item.age !== null && <span>屋齡 {item.age} 年</span>}
+                </div>
+                <div class="listing-footer">
+                  <div>
+                    {item.originalPrice && (
+                      <span class="price-original">{item.originalPrice} 萬</span>
+                    )}
+                    <span class="price">
+                      {item.price ? `${item.price} 萬` : '價格洽詢'}
+                    </span>
+                  </div>
+                  <span class="case-no">{item.caseNo}</span>
+                </div>
+              </a>
+            </div>
+          ))
+        }
+      </div>
+
+      <div class="empty" id="emptyState" style="display:none;">目前沒有符合條件的物件</div>
+
+      <div class="contact-strip">
+        <span>想看更多物件、預約帶看，歡迎直接聯絡</span>
+        <span>
+          蔡莎拉 <a href="tel:0986793193">0986-793-193</a> · LINE ID：SaLa193
+        </span>
+      </div>
     </div>
   </section>
+
+  <script>
+    const grid = document.getElementById('grid');
+    const cards = Array.from(grid.querySelectorAll('.listing-card'));
+    const searchInput = document.getElementById('searchInput');
+    const typeFilter = document.getElementById('typeFilter');
+    const sortSelect = document.getElementById('sortSelect');
+    const countBadge = document.getElementById('countBadge');
+    const emptyState = document.getElementById('emptyState');
+
+    function apply() {
+      const kw = searchInput.value.trim();
+      const type = typeFilter.value;
+      let visibleCount = 0;
+
+      cards.forEach((card) => {
+        const name = card.dataset.name;
+        const address = card.dataset.address;
+        const cardType = card.dataset.type;
+        const matchesKw = !kw || name.includes(kw) || address.includes(kw);
+        const matchesType = !type || cardType === type;
+        const show = matchesKw && matchesType;
+        card.style.display = show ? '' : 'none';
+        if (show) visibleCount++;
+      });
+
+      const sortVal = sortSelect.value;
+      const visibleCards = cards.filter((c) => c.style.display !== 'none');
+      visibleCards
+        .sort((a, b) => {
+          const pa = parseFloat(a.dataset.price) || 0;
+          const pb = parseFloat(b.dataset.price) || 0;
+          return sortVal === 'price-asc' ? pa - pb : pb - pa;
+        })
+        .forEach((c) => grid.appendChild(c));
+
+      countBadge.textContent = `${visibleCount} 筆物件`;
+      emptyState.style.display = visibleCount === 0 ? 'block' : 'none';
+    }
+
+    searchInput.addEventListener('input', apply);
+    typeFilter.addEventListener('change', apply);
+    sortSelect.addEventListener('change', apply);
+  </script>
 </BaseLayout>
+
+<style>
+  .find-house {
+    padding: 40px 0 90px;
+  }
+  .page-head {
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 20px;
+    margin-bottom: 26px;
+  }
+  .page-head h1 {
+    margin: 0 0 6px;
+  }
+  .page-head p {
+    margin: 0;
+    color: var(--text-soft);
+    font-size: 14px;
+  }
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 24px;
+    align-items: center;
+  }
+  .toolbar input,
+  .toolbar select {
+    border: 1px solid var(--line);
+    background: var(--white);
+    padding: 9px 12px;
+    font-size: 14px;
+    border-radius: var(--radius);
+    font-family: var(--font-body);
+    color: var(--ink);
+  }
+  .toolbar input {
+    flex: 1;
+    min-width: 180px;
+  }
+  .count-badge {
+    margin-left: auto;
+    font-size: 13px;
+    color: var(--text-soft);
+  }
+  .listing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+  }
+  .listing-card {
+    border: 1px solid var(--line);
+    background: var(--white);
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow 0.15s, transform 0.15s;
+  }
+  .listing-card:hover {
+    box-shadow: 0 4px 18px rgba(26, 31, 43, 0.1);
+    transform: translateY(-2px);
+  }
+  .listing-card a.card-link {
+    color: inherit;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 18px;
+  }
+  .badge-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 2px;
+  }
+  .badge-new {
+    background: #e7f0ea;
+    color: #2e6b45;
+  }
+  .badge-hot {
+    background: #f6e9dc;
+    color: var(--brick);
+  }
+  .listing-type {
+    font-size: 12px;
+    color: var(--gold);
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .listing-name {
+    font-family: var(--font-display);
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.4;
+    margin-bottom: 6px;
+    min-height: 2.8em;
+    color: var(--ink);
+  }
+  .listing-address {
+    font-size: 12.5px;
+    color: var(--text-soft);
+    margin-bottom: 12px;
+  }
+  .listing-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    font-size: 12.5px;
+    color: var(--text-soft);
+    margin-bottom: 14px;
+    border-top: 1px dashed var(--line);
+    padding-top: 10px;
+  }
+  .listing-footer {
+    margin-top: auto;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+  .price {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--brick);
+  }
+  .price-original {
+    font-size: 12.5px;
+    color: var(--text-soft);
+    text-decoration: line-through;
+    margin-right: 6px;
+  }
+  .case-no {
+    font-size: 11px;
+    color: var(--text-soft);
+    opacity: 0.7;
+  }
+  .empty {
+    padding: 60px 20px;
+    text-align: center;
+    color: var(--text-soft);
+    border: 1px dashed var(--line);
+    border-radius: var(--radius);
+  }
+  .contact-strip {
+    margin-top: 40px;
+    border-top: 2px solid var(--ink);
+    padding-top: 20px;
+    font-size: 13.5px;
+    color: var(--text-soft);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .contact-strip a {
+    color: var(--brick);
+    font-weight: 700;
+    text-decoration: none;
+  }
+</style>
