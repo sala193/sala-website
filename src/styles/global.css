@@ -371,6 +371,22 @@ blockquote.sala-says::before {
 }
 .prose h2 { margin-top: 1.6em; }
 .prose img { max-width: 100%; border-radius: var(--radius); }
+/* 文章裡的表格：手機上可左右滑動，不撐破版面 */
+.prose table {
+  display: block;
+  overflow-x: auto;
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+  margin: 1em 0 0.6em;
+}
+.prose th, .prose td {
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+.prose th { background: var(--paper-deep); color: var(--ink); font-weight: 700; }
 .community-cover {
   width: 100%;
   aspect-ratio: 4 / 3;
