@@ -3,7 +3,14 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import '../../styles/calc.css';
 
 const pageTitle = '房地合一稅試算';
-const pageDesc = '輸入售價、成本、買進與賣出日期（民國），試算個人房地合一稅 2.0 的稅額、適用稅率與自住優惠，並提示再持有多久稅率會下降。蔡莎拉免費提供。';
+const pageDesc = '輸入售價、成本、持有期間，試算個人房地合一稅 2.0 的稅額、適用稅率與自住優惠，並提示再持有多久稅率會下降。蔡莎拉免費提供。';
+
+const holdOptions = [
+  { value: '2', label: '2 年內' },
+  { value: '5', label: '2-5 年' },
+  { value: '10', label: '5-10 年' },
+  { value: '10+', label: '10 年以上' },
+];
 ---
 <BaseLayout title={pageTitle} description={pageDesc}>
   <script type="application/ld+json" set:html={JSON.stringify({
@@ -24,38 +31,14 @@ const pageDesc = '輸入售價、成本、買進與賣出日期（民國），�
       <p class="hero-eyebrow calc-eyebrow">免費小工具</p>
       <h1>房地合一稅試算</h1>
       <p class="section-lead">
-        賣房前先算清楚要繳多少稅。依買進日與賣出日精算持有期間與稅率，
-        並告訴你「再多持有一陣子」稅額能少多少，幫你抓出售時機。
+        賣房前先算清楚要繳多少稅。填好售價、成本，選一下持有期間，
+        馬上算出稅額，並告訴你「再多持有一陣子」能少繳多少，幫你抓出售時機。
       </p>
 
       <div class="calc-grid">
         <!-- 輸入區 -->
         <form class="info-card calc-form" id="cg-form" autocomplete="off" novalidate>
           <div class="calc-fields">
-            <div class="calc-field" role="group" aria-labelledby="lbl-acq">
-              <span id="lbl-acq">買進日期 <em>民國</em></span>
-              <div class="roc-date">
-                <input type="number" id="acq-y" inputmode="numeric" min="1" max="200" placeholder="年" aria-label="買進日期：民國年" />
-                <span aria-hidden="true">年</span>
-                <input type="number" id="acq-m" inputmode="numeric" min="1" max="12" placeholder="月" aria-label="買進日期：月" />
-                <span aria-hidden="true">月</span>
-                <input type="number" id="acq-d" inputmode="numeric" min="1" max="31" placeholder="日" aria-label="買進日期：日" />
-                <span aria-hidden="true">日</span>
-              </div>
-            </div>
-            <div class="calc-field" role="group" aria-labelledby="lbl-sell">
-              <span id="lbl-sell">賣出日期 <em>民國</em></span>
-              <div class="roc-date">
-                <input type="number" id="sell-y" inputmode="numeric" min="1" max="200" placeholder="年" aria-label="賣出日期：民國年" />
-                <span aria-hidden="true">年</span>
-                <input type="number" id="sell-m" inputmode="numeric" min="1" max="12" placeholder="月" aria-label="賣出日期：月" />
-                <span aria-hidden="true">月</span>
-                <input type="number" id="sell-d" inputmode="numeric" min="1" max="31" placeholder="日" aria-label="賣出日期：日" />
-                <span aria-hidden="true">日</span>
-              </div>
-            </div>
-            <p class="hold-info calc-wide" id="out-hold">請輸入買進日期與賣出日期（民國年月日）</p>
-
             <label class="calc-field">
               <span>賣出總價 <em>萬元</em></span>
               <input type="number" id="in-price" inputmode="decimal" min="0" step="1" placeholder="例如 2000" />
@@ -79,16 +62,26 @@ const pageDesc = '輸入售價、成本、買進與賣出日期（民國），�
             </label>
           </div>
 
-          <label class="calc-check" id="self-wrap">
-            <input type="checkbox" id="in-self" disabled />
-            <span>
-              <b>適用自住房地優惠</b>
-              <small id="self-note">
-                本人、配偶或未成年子女在該屋設籍並連續居住滿 6 年，
-                交易前 6 年內無出租或營業，且 6 年內未用過此優惠。持有滿 6 年才能勾選。
-              </small>
-            </span>
-          </label>
+          <fieldset class="calc-choice">
+            <legend>持有期間<em>（買進到賣出）</em></legend>
+            <div class="seg" role="radiogroup">
+              {holdOptions.map((o) => (
+                <label><input type="radio" name="hold" value={o.value} /><span>{o.label}</span></label>
+              ))}
+            </div>
+            <p class="seg-note">剛好滿 2 年仍算「2 年內」，超過 2 年才算「2-5 年」，5 年、10 年同理。</p>
+          </fieldset>
+
+          <div>
+            <label class="calc-check" id="self-wrap">
+              <span>
+                <b>自用住宅滿 6 年優惠</b>
+                <small>400 萬免稅＋超過部分 10%</small>
+              </span>
+              <input type="checkbox" id="in-self" disabled aria-label="適用自用住宅滿 6 年優惠" />
+            </label>
+            <p class="seg-note" id="self-note"></p>
+          </div>
         </form>
 
         <!-- 結果區 -->
@@ -96,7 +89,7 @@ const pageDesc = '輸入售價、成本、買進與賣出日期（民國），�
           <div class="result-main">
             <div class="result-label">預估應納房地合一稅</div>
             <div class="result-value"><span id="out-tax">—</span><small id="out-tax-unit"></small></div>
-            <p class="result-hint" id="out-hint">請填入日期、賣出總價與取得成本</p>
+            <p class="result-hint" id="out-hint">請填入賣出總價與取得成本，並選擇持有期間</p>
           </div>
 
           <dl class="result-rows" id="out-steps" hidden>
@@ -127,7 +120,8 @@ const pageDesc = '輸入售價、成本、買進與賣出日期（民國），�
       <h4>試算前請注意</h4>
       <ul class="calc-notes">
         <li>本工具適用<strong>境內居住個人</strong>出售房屋與土地（房地合一稅 2.0）。法人、非境內居住者、營利事業的稅率與規定不同。</li>
-        <li>持有期間依所填的買進日與賣出日計算，實際以稅捐機關認定的交易日（訂約日或移轉登記日）為準。繼承、受贈取得者的持有期間起算方式不同。</li>
+        <li>持有期間以買進到賣出的實際期間為準，實際以稅捐機關認定的交易日（訂約日或移轉登記日）為準。繼承、受贈取得者的持有期間起算方式不同。</li>
+        <li>自用住宅優惠必須實際持有並設籍滿 6 年，所以只有選「5-10 年」「10 年以上」才能開啟；選「5-10 年」時，請確認自己實際有滿 6 年。</li>
         <li>未計入：重購退稅、因調職或非自願離職等事由適用 20%、都更與危老等特殊稅率或減免，這些情形請洽國稅局或會計師。</li>
         <li>自住優惠另有土地面積限制（都市土地 300 平方公尺、非都市土地 700 平方公尺），超過部分不適用，本工具未逐項檢查。</li>
         <li>土地增值稅不能在房地合一稅中扣除，扣的是「土地漲價總數額」，請看土增稅核定資料上的數字。</li>
@@ -157,58 +151,29 @@ const pageDesc = '輸入售價、成本、買進與賣出日期（民國），�
   };
 
   const nf = new Intl.NumberFormat('zh-TW', { maximumFractionDigits: 0 });
-  const wan = (y: number) => {
-    const w = y / 10000;
-    return `${new Intl.NumberFormat('zh-TW', { maximumFractionDigits: 2 }).format(w)} 萬`;
-  };
+  const nfWan = new Intl.NumberFormat('zh-TW', { maximumFractionDigits: 2 });
+  const wan = (y: number) => `${nfWan.format(y / 10000)} 萬`;
   const money = (y: number) => `${nf.format(y)} 元`;
 
-  // ---- 日期工具（一律用 UTC 午夜，避免時區造成差一天）----
-  // 讀取「民國年 / 月 / 日」三個欄位，換算成西元的 UTC 午夜時間戳
-  // 回傳 null＝還沒填完；'bad'＝填了但不是有效日期（如 2 月 30 日、或誤填西元年）
-  const readRoc = (prefix: string): number | null | 'bad' => {
-    const raw = ['y', 'm', 'd'].map((k) => input(`${prefix}-${k}`).value.trim());
-    if (raw.some((s) => s === '')) return null;
-    const [y, m, d] = raw.map(Number);
-    if (![y, m, d].every(Number.isInteger) || y < 1 || y > 200 || m < 1 || m > 12 || d < 1 || d > 31) return 'bad';
-    const ts = Date.UTC(y + 1911, m - 1, d);
-    const back = new Date(ts);
-    return back.getUTCMonth() === m - 1 && back.getUTCDate() === d ? ts : 'bad';
-  };
-  const addYears = (ts: number, n: number) => {
-    const d = new Date(ts);
-    return Date.UTC(d.getUTCFullYear() + n, d.getUTCMonth(), d.getUTCDate());
-  };
-  const DAY = 86400000;
-  const fmtDate = (ts: number) => {
-    const d = new Date(ts);
-    return `民國 ${d.getUTCFullYear() - 1911} 年 ${d.getUTCMonth() + 1} 月 ${d.getUTCDate()} 日`;
-  };
-  const diffYM = (from: number, to: number) => {
-    const a = new Date(from), b = new Date(to);
-    let y = b.getUTCFullYear() - a.getUTCFullYear();
-    let m = b.getUTCMonth() - a.getUTCMonth();
-    if (b.getUTCDate() < a.getUTCDate()) m -= 1;
-    if (m < 0) { y -= 1; m += 12; }
-    return { y, m };
-  };
-
-  // 房地合一稅 2.0，個人境內居住者：
+  // 房地合一稅 2.0，個人境內居住者（持有期間以內含上限計）：
   // 2 年以內 45%；超過 2 年未逾 5 年 35%；超過 5 年未逾 10 年 20%；超過 10 年 15%
-  const TIERS = [
-    { years: 2, rate: 0.45 },
-    { years: 5, rate: 0.35 },
-    { years: 10, rate: 0.2 },
-  ];
-  const rateFor = (acq: number, sell: number) => {
-    for (const t of TIERS) if (sell <= addYears(acq, t.years)) return t.rate;
-    return 0.15;
+  type Hold = '2' | '5' | '10' | '10+';
+  const RATES: Record<Hold, number> = { '2': 0.45, '5': 0.35, '10': 0.2, '10+': 0.15 };
+  // 每個區間的下一級：持有超過幾年後稅率降到哪一級
+  const NEXT: Record<Hold, { years: number; to: Hold } | null> = {
+    '2': { years: 2, to: '5' },
+    '5': { years: 5, to: '10' },
+    '10': { years: 10, to: '10+' },
+    '10+': null,
   };
 
   const SELF_EXEMPT = 4_000_000; // 自住房地免稅額
   const SELF_RATE = 0.1;
   const FEE_RATE = 0.03; // 未提示證明時，按成交價 3% 認列
   const FEE_CAP = 300_000; // 上限 30 萬
+
+  const SELF_CONDITIONS =
+    '需本人、配偶或未成年子女在該屋設籍並連續居住滿 6 年，交易前 6 年內無出租或營業，且 6 年內未用過此優惠。';
 
   type Calc = { gain: number; taxable: number; rate: number; exempt: number; tax: number };
   function calc(price: number, cost: number, fee: number, land: number, loss: number, rate: number, self: boolean): Calc {
@@ -220,6 +185,10 @@ const pageDesc = '輸入售價、成本、買進與賣出日期（民國），�
   }
 
   const setText = (id: string, t: string) => { $(id).textContent = t; };
+  const holdValue = (): Hold | null => {
+    const el = document.querySelector('input[name="hold"]:checked') as HTMLInputElement | null;
+    return el ? (el.value as Hold) : null;
+  };
 
   function resetOutput(hint: string) {
     setText('out-tax', '—');
@@ -229,50 +198,41 @@ const pageDesc = '輸入售價、成本、買進與賣出日期（民國），�
     ($('out-tip') as HTMLElement).hidden = true;
   }
 
-  function updateSelfOption(eligible: boolean) {
+  // 自住優惠要持有滿 6 年：只有「5-10 年」「10 年以上」才能開
+  function updateSelfOption(hold: Hold | null) {
+    const eligible = hold === '10' || hold === '10+';
     const cb = input('in-self');
-    const wrap = $('self-wrap');
     cb.disabled = !eligible;
     if (!eligible) cb.checked = false;
-    wrap.classList.toggle('is-disabled', !eligible);
+    $('self-wrap').classList.toggle('is-disabled', !eligible);
+    setText(
+      'self-note',
+      !eligible
+        ? '持有 5 年以上才能選（需實際持有並設籍滿 6 年）。'
+        : hold === '10'
+          ? `${SELF_CONDITIONS}選「5-10 年」時，持有 5～6 年不適用，請確認實際有滿 6 年。`
+          : SELF_CONDITIONS,
+    );
   }
 
   function update() {
-    const acq = readRoc('acq');
-    const sell = readRoc('sell');
+    const hold = holdValue();
+    updateSelfOption(hold);
 
-    // --- 持有期間 ---
-    if (acq === 'bad' || sell === 'bad') {
-      setText('out-hold', '日期不正確，請檢查民國年、月、日（年份請填民國年，例如 114）');
-      updateSelfOption(false);
-      return resetOutput('請修正日期');
-    }
-    if (acq === null || sell === null) {
-      setText('out-hold', '請輸入買進日期與賣出日期（民國年月日）');
-      updateSelfOption(false);
-      return resetOutput('請填入日期、賣出總價與取得成本');
-    }
-    if (sell < acq) {
-      setText('out-hold', '賣出日期不能早於買進日期');
-      updateSelfOption(false);
-      return resetOutput('請檢查日期');
-    }
-
-    const { y, m } = diffYM(acq, sell);
-    const rate = rateFor(acq, sell);
-    const selfEligible = sell >= addYears(acq, 6);
-    updateSelfOption(selfEligible);
-    const holdEl = $('out-hold');
-    holdEl.replaceChildren();
-    const strong = document.createElement('strong');
-    strong.textContent = `${y} 年 ${m} 個月`;
-    holdEl.append('持有期間 ', strong, `，一般稅率 ${Math.round(rate * 100)}%`);
-
-    // --- 金額 ---
     const price = yuan('in-price');
     const cost = yuan('in-cost');
-    if (price <= 0 || cost <= 0) return resetOutput('請填入賣出總價與取得成本');
+    const needAmounts = price <= 0 || cost <= 0;
+    if (needAmounts || !hold) {
+      return resetOutput(
+        needAmounts && !hold
+          ? '請填入賣出總價與取得成本，並選擇持有期間'
+          : needAmounts
+            ? '請填入賣出總價與取得成本'
+            : '請選擇持有期間',
+      );
+    }
 
+    // 費用：有單據取單據，不足時按成交價 3%（上限 30 萬）認列
     const proven = yuan('in-fee');
     const autoFee = Math.min(Math.round(price * FEE_RATE), FEE_CAP);
     const fee = Math.max(proven, autoFee);
@@ -285,7 +245,8 @@ const pageDesc = '輸入售價、成本、買進與賣出日期（民國），�
 
     const land = yuan('in-land');
     const loss = yuan('in-loss');
-    const self = input('in-self').checked && selfEligible;
+    const self = input('in-self').checked;
+    const rate = RATES[hold];
     const r = calc(price, cost, fee, land, loss, rate, self);
 
     // --- 輸出 ---
@@ -318,17 +279,15 @@ const pageDesc = '輸入售價、成本、買進與賣出日期（民國），�
     // --- 下一個稅率門檻提示（其他條件不變；已用自住優惠或沒有課稅所得就不提示）---
     const tip = $('out-tip') as HTMLElement;
     tip.replaceChildren();
-    const next = TIERS.find((t) => sell <= addYears(acq, t.years));
+    const next = NEXT[hold];
     if (next && !self && r.taxable > 0) {
-      const from = addYears(acq, next.years) + DAY; // 滿整期之後的隔天起，稅率才降
-      const later = calc(price, cost, fee, land, loss, rateFor(acq, from), false);
-      const saved = r.tax - later.tax;
+      const later = calc(price, cost, fee, land, loss, RATES[next.to], false);
       const b = document.createElement('b');
       b.textContent = '出售時機提示：';
       tip.append(
         b,
-        `若把賣出日延後到 ${fmtDate(from)}之後，稅率會降到 ${Math.round(later.rate * 100)}%，`,
-        `稅額約 ${money(later.tax)}，比現在少繳約 ${money(saved)}。（假設售價與費用不變）`,
+        `若持有期間超過 ${next.years} 年再賣，稅率會降到 ${Math.round(later.rate * 100)}%，`,
+        `稅額約 ${money(later.tax)}，比現在少繳約 ${money(r.tax - later.tax)}。（假設售價與費用不變）`,
       );
       tip.hidden = false;
     } else {
