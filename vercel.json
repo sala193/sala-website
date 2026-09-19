@@ -1,0 +1,6 @@
+{
+  "redirects": [
+    { "source": "/tools", "destination": "https://tools.salahome.tw", "permanent": false },
+    { "source": "/tools/:path*", "destination": "https://tools.salahome.tw/:path*", "permanent": false }
+  ]
+}
