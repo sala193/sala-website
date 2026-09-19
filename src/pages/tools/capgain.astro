@@ -3,7 +3,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import '../../styles/calc.css';
 
 const pageTitle = '房地合一稅試算';
-const pageDesc = '輸入售價、成本、取得與出售日期，試算個人房地合一稅 2.0 的稅額、適用稅率與自住優惠，並提示再持有多久稅率會下降。蔡莎拉免費提供。';
+const pageDesc = '輸入售價、成本、買進與賣出日期（民國），試算個人房地合一稅 2.0 的稅額、適用稅率與自住優惠，並提示再持有多久稅率會下降。蔡莎拉免費提供。';
 ---
 <BaseLayout title={pageTitle} description={pageDesc}>
   <script type="application/ld+json" set:html={JSON.stringify({
@@ -24,7 +24,7 @@ const pageDesc = '輸入售價、成本、取得與出售日期，試算個人�
       <p class="hero-eyebrow calc-eyebrow">免費小工具</p>
       <h1>房地合一稅試算</h1>
       <p class="section-lead">
-        賣房前先算清楚要繳多少稅。依取得日與出售日精算持有期間與稅率，
+        賣房前先算清楚要繳多少稅。依買進日與賣出日精算持有期間與稅率，
         並告訴你「再多持有一陣子」稅額能少多少，幫你抓出售時機。
       </p>
 
@@ -32,15 +32,29 @@ const pageDesc = '輸入售價、成本、取得與出售日期，試算個人�
         <!-- 輸入區 -->
         <form class="info-card calc-form" id="cg-form" autocomplete="off" novalidate>
           <div class="calc-fields">
-            <label class="calc-field">
-              <span>取得日期 <em>買進</em></span>
-              <input type="date" id="in-acq" />
-            </label>
-            <label class="calc-field">
-              <span>出售日期 <em>賣出</em></span>
-              <input type="date" id="in-sell-date" />
-            </label>
-            <p class="hold-info calc-wide" id="out-hold">請選擇取得日期與出售日期</p>
+            <div class="calc-field" role="group" aria-labelledby="lbl-acq">
+              <span id="lbl-acq">買進日期 <em>民國</em></span>
+              <div class="roc-date">
+                <input type="number" id="acq-y" inputmode="numeric" min="1" max="200" placeholder="年" aria-label="買進日期：民國年" />
+                <span aria-hidden="true">年</span>
+                <input type="number" id="acq-m" inputmode="numeric" min="1" max="12" placeholder="月" aria-label="買進日期：月" />
+                <span aria-hidden="true">月</span>
+                <input type="number" id="acq-d" inputmode="numeric" min="1" max="31" placeholder="日" aria-label="買進日期：日" />
+                <span aria-hidden="true">日</span>
+              </div>
+            </div>
+            <div class="calc-field" role="group" aria-labelledby="lbl-sell">
+              <span id="lbl-sell">賣出日期 <em>民國</em></span>
+              <div class="roc-date">
+                <input type="number" id="sell-y" inputmode="numeric" min="1" max="200" placeholder="年" aria-label="賣出日期：民國年" />
+                <span aria-hidden="true">年</span>
+                <input type="number" id="sell-m" inputmode="numeric" min="1" max="12" placeholder="月" aria-label="賣出日期：月" />
+                <span aria-hidden="true">月</span>
+                <input type="number" id="sell-d" inputmode="numeric" min="1" max="31" placeholder="日" aria-label="賣出日期：日" />
+                <span aria-hidden="true">日</span>
+              </div>
+            </div>
+            <p class="hold-info calc-wide" id="out-hold">請輸入買進日期與賣出日期（民國年月日）</p>
 
             <label class="calc-field">
               <span>賣出總價 <em>萬元</em></span>
@@ -113,7 +127,7 @@ const pageDesc = '輸入售價、成本、取得與出售日期，試算個人�
       <h4>試算前請注意</h4>
       <ul class="calc-notes">
         <li>本工具適用<strong>境內居住個人</strong>出售房屋與土地（房地合一稅 2.0）。法人、非境內居住者、營利事業的稅率與規定不同。</li>
-        <li>持有期間依所填的取得日與出售日計算，實際以稅捐機關認定的交易日（訂約日或移轉登記日）為準。繼承、受贈取得者的持有期間起算方式不同。</li>
+        <li>持有期間依所填的買進日與賣出日計算，實際以稅捐機關認定的交易日（訂約日或移轉登記日）為準。繼承、受贈取得者的持有期間起算方式不同。</li>
         <li>未計入：重購退稅、因調職或非自願離職等事由適用 20%、都更與危老等特殊稅率或減免，這些情形請洽國稅局或會計師。</li>
         <li>自住優惠另有土地面積限制（都市土地 300 平方公尺、非都市土地 700 平方公尺），超過部分不適用，本工具未逐項檢查。</li>
         <li>土地增值稅不能在房地合一稅中扣除，扣的是「土地漲價總數額」，請看土增稅核定資料上的數字。</li>
@@ -150,9 +164,16 @@ const pageDesc = '輸入售價、成本、取得與出售日期，試算個人�
   const money = (y: number) => `${nf.format(y)} 元`;
 
   // ---- 日期工具（一律用 UTC 午夜，避免時區造成差一天）----
-  const parseDate = (s: string): number | null => {
-    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
-    return m ? Date.UTC(+m[1], +m[2] - 1, +m[3]) : null;
+  // 讀取「民國年 / 月 / 日」三個欄位，換算成西元的 UTC 午夜時間戳
+  // 回傳 null＝還沒填完；'bad'＝填了但不是有效日期（如 2 月 30 日、或誤填西元年）
+  const readRoc = (prefix: string): number | null | 'bad' => {
+    const raw = ['y', 'm', 'd'].map((k) => input(`${prefix}-${k}`).value.trim());
+    if (raw.some((s) => s === '')) return null;
+    const [y, m, d] = raw.map(Number);
+    if (![y, m, d].every(Number.isInteger) || y < 1 || y > 200 || m < 1 || m > 12 || d < 1 || d > 31) return 'bad';
+    const ts = Date.UTC(y + 1911, m - 1, d);
+    const back = new Date(ts);
+    return back.getUTCMonth() === m - 1 && back.getUTCDate() === d ? ts : 'bad';
   };
   const addYears = (ts: number, n: number) => {
     const d = new Date(ts);
@@ -161,8 +182,7 @@ const pageDesc = '輸入售價、成本、取得與出售日期，試算個人�
   const DAY = 86400000;
   const fmtDate = (ts: number) => {
     const d = new Date(ts);
-    const y = d.getUTCFullYear(), m = d.getUTCMonth() + 1, day = d.getUTCDate();
-    return `${y}/${String(m).padStart(2, '0')}/${String(day).padStart(2, '0')}（民國 ${y - 1911} 年）`;
+    return `民國 ${d.getUTCFullYear() - 1911} 年 ${d.getUTCMonth() + 1} 月 ${d.getUTCDate()} 日`;
   };
   const diffYM = (from: number, to: number) => {
     const a = new Date(from), b = new Date(to);
@@ -218,17 +238,22 @@ const pageDesc = '輸入售價、成本、取得與出售日期，試算個人�
   }
 
   function update() {
-    const acq = parseDate(input('in-acq').value);
-    const sell = parseDate(input('in-sell-date').value);
+    const acq = readRoc('acq');
+    const sell = readRoc('sell');
 
     // --- 持有期間 ---
+    if (acq === 'bad' || sell === 'bad') {
+      setText('out-hold', '日期不正確，請檢查民國年、月、日（年份請填民國年，例如 114）');
+      updateSelfOption(false);
+      return resetOutput('請修正日期');
+    }
     if (acq === null || sell === null) {
-      setText('out-hold', '請選擇取得日期與出售日期');
+      setText('out-hold', '請輸入買進日期與賣出日期（民國年月日）');
       updateSelfOption(false);
       return resetOutput('請填入日期、賣出總價與取得成本');
     }
     if (sell < acq) {
-      setText('out-hold', '出售日期不能早於取得日期');
+      setText('out-hold', '賣出日期不能早於買進日期');
       updateSelfOption(false);
       return resetOutput('請檢查日期');
     }
@@ -302,7 +327,7 @@ const pageDesc = '輸入售價、成本、取得與出售日期，試算個人�
       b.textContent = '出售時機提示：';
       tip.append(
         b,
-        `若把出售日延後到 ${fmtDate(from)}之後，稅率會降到 ${Math.round(later.rate * 100)}%，`,
+        `若把賣出日延後到 ${fmtDate(from)}之後，稅率會降到 ${Math.round(later.rate * 100)}%，`,
         `稅額約 ${money(later.tax)}，比現在少繳約 ${money(saved)}。（假設售價與費用不變）`,
       );
       tip.hidden = false;
