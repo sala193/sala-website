@@ -190,3 +190,8 @@
 
 .calc-notes { font-size: 0.82rem; color: var(--text-soft); line-height: 1.8; padding-left: 1.2em; margin: 0 0 1.1em; }
 .calc-notes li { margin-bottom: 4px; }
+
+/* 兩格式選項（不隨螢幕寬度改成 2×2）、可隱藏的欄位 */
+.seg.seg-2 { grid-template-columns: repeat(2, 1fr); }
+.calc-field[hidden] { display: none; }
+.calc-choice { min-width: 0; }

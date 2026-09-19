@@ -48,10 +48,22 @@ const holdOptions = [
               <input type="number" id="in-cost" inputmode="decimal" min="0" step="1" placeholder="當初買價，例如 1500" />
             </label>
             <label class="calc-field calc-wide">
-              <span>取得、改良、移轉費用 <em>萬元・有單據的合計</em></span>
-              <input type="number" id="in-fee" inputmode="decimal" min="0" step="0.1" placeholder="買賣仲介費、代書費、契稅、裝修、這次的仲介服務費…" />
-              <span class="calc-sub" id="out-fee-note">沒有單據或金額不到成交價 3% 時，稅局按成交價 3%（上限 30 萬）認列。</span>
+              <span>取得、改良費用 <em>萬元・有單據的合計</em></span>
+              <input type="number" id="in-fee" inputmode="decimal" min="0" step="0.1" placeholder="買進時的仲介費、代書費、契稅、裝修…，沒有免填" />
             </label>
+
+            <fieldset class="calc-choice calc-wide">
+              <legend>出售成本<em>（這次賣房的仲介服務費、代書費、廣告費等）</em></legend>
+              <div class="seg seg-2" role="radiogroup">
+                <label><input type="radio" name="sellmode" value="auto" checked /><span>預設 3%（上限 30 萬）</span></label>
+                <label><input type="radio" name="sellmode" value="manual" /><span>手動輸入</span></label>
+              </div>
+              <label class="calc-field" id="sellcost-wrap" hidden style="margin-top:10px;">
+                <span>出售成本金額 <em>萬元・有單據的合計</em></span>
+                <input type="number" id="in-sellcost" inputmode="decimal" min="0" step="0.1" placeholder="例如 80" />
+              </label>
+              <p class="seg-note" id="out-fee-note">系統計算：成交價 3%，上限 30 萬。</p>
+            </fieldset>
             <label class="calc-field">
               <span>土地漲價總數額 <em>萬元</em></span>
               <input type="number" id="in-land" inputmode="decimal" min="0" step="0.1" placeholder="看土增稅核定資料" />
@@ -221,6 +233,25 @@ const holdOptions = [
 
     const price = yuan('in-price');
     const cost = yuan('in-cost');
+
+    // 費用（取得、改良費用＋出售成本）：有單據取單據，
+    // 合計不足成交價 3% 時，稅局按成交價 3%（上限 30 萬）認列。預設模式的出售成本視為沒有單據。
+    const manual = (document.querySelector('input[name="sellmode"]:checked') as HTMLInputElement).value === 'manual';
+    $('sellcost-wrap').hidden = !manual;
+    const proven = yuan('in-fee') + (manual ? yuan('in-sellcost') : 0);
+    const autoFee = Math.min(Math.round(price * FEE_RATE), FEE_CAP);
+    const fee = Math.max(proven, autoFee);
+    setText(
+      'out-fee-note',
+      price <= 0
+        ? '系統計算：成交價 3%，上限 30 萬。'
+        : proven > autoFee
+          ? `已採用你填的單據金額合計 ${wan(proven)}（超過 3% 認列額）。`
+          : proven > 0
+            ? `你填的金額合計 ${wan(proven)}，不足成交價 3%，稅局改按 3%（上限 30 萬）認列：${money(autoFee)}。`
+            : `系統計算：${money(autoFee)}（成交價 3%，上限 30 萬）。`,
+    );
+
     const needAmounts = price <= 0 || cost <= 0;
     if (needAmounts || !hold) {
       return resetOutput(
@@ -231,17 +262,6 @@ const holdOptions = [
             : '請選擇持有期間',
       );
     }
-
-    // 費用：有單據取單據，不足時按成交價 3%（上限 30 萬）認列
-    const proven = yuan('in-fee');
-    const autoFee = Math.min(Math.round(price * FEE_RATE), FEE_CAP);
-    const fee = Math.max(proven, autoFee);
-    setText(
-      'out-fee-note',
-      proven >= autoFee && proven > 0
-        ? `已採用你填的單據金額 ${wan(proven)}。`
-        : `單據不足，稅局按成交價 3%（上限 30 萬）認列：${wan(autoFee)}。`,
-    );
 
     const land = yuan('in-land');
     const loss = yuan('in-loss');
