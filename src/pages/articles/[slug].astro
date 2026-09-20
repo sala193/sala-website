@@ -1,6 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
-import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArticleLayout from '../../layouts/ArticleLayout.astro';
 
 export async function getStaticPaths() {
   const articles = await getCollection('articles');
@@ -11,24 +11,8 @@ export async function getStaticPaths() {
 }
 
 const { entry } = Astro.props;
-const { Content } = await entry.render();
-const d = entry.data;
+const { Content, headings } = await entry.render();
 ---
-<BaseLayout title={d.title} description={d.description}>
-  <article class="section">
-    <div class="container">
-      <div class="prose" style="max-width: 74ch; margin: 0 auto;">
-        <p class="card-region">{d.category}{d.region ? `．${d.region}` : ''}</p>
-        <h1>{d.title}</h1>
-        <p style="color: var(--text-soft); font-size: 0.9rem; margin-top: -0.6em;">
-          撰文：{d.author} ／ 更新日期：{d.date.toLocaleDateString('zh-TW')}
-        </p>
-        <Content />
-
-        <div style="margin-top: 40px;">
-          <a class="btn btn-primary" href="https://line.me/ti/p/@saLa193" target="_blank" rel="noopener">LINE 詢問蔡莎拉</a>
-        </div>
-      </div>
-    </div>
-  </article>
-</BaseLayout>
+<ArticleLayout slug={entry.slug} data={entry.data} headings={headings}>
+  <Content />
+</ArticleLayout>

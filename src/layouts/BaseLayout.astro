@@ -6,10 +6,15 @@ import '../styles/global.css';
 interface Props {
   title: string;
   description?: string;
+  // 文章頁用：og:type 與分享預覽圖（路徑，例如 /images/articles/xxx.jpg）
+  ogType?: string;
+  image?: string;
 }
 
 const {
   title,
+  ogType = 'website',
+  image,
   description = '蔡莎拉｜鶯歌．鳳鳴不動產 × 土地廠房顧問。專營鶯歌、鳳鳴重劃區，提供住宅、店面、土地、廠房買賣與租賃服務，誠信專業、在地深耕，用心為您找到更好的家。',
 } = Astro.props;
 
@@ -31,8 +36,11 @@ const pageTitle = isHome
     <!-- Open Graph -->
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={description} />
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={ogType} />
     <meta property="og:locale" content="zh_TW" />
+    <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site)} />
+    {image && <meta property="og:image" content={new URL(image, Astro.site)} />}
+    {image && <meta name="twitter:card" content="summary_large_image" />}
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -52,6 +60,9 @@ const pageTitle = isHome
       telephone: '+886-986-793-193',
       url: 'https://www.salahome.tw',
     })} />
+
+    <!-- 頁面自己的 <head> 內容（文章的結構化資料等） -->
+    <slot name="head" />
   </head>
   <body>
     <Header />

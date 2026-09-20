@@ -42,7 +42,7 @@
 
 - 新社區 → 在 `src/content/communities/` 裡新增一個檔案，例如 `qingsong-wan.md`，
   照 `senqing.md` 的格式（frontmatter + 開箱文正文）填資料
-- 新文章 → 在 `src/content/articles/` 裡新增一個檔案，照範例格式填
+- 新文章 → 複製 `src/content/articles/_文章模板.md`（檔名開頭是 `_` 的不會被網站收錄），改檔名（英文小寫加連字號，就是網址）與內容
 
 存檔、`git push`，Vercel 就會自動重新產生對應的頁面，不用碰任何程式碼。
 你也可以把資料丟給 Claude（我），我可以直接照範本幫你把 Markdown 檔案寫好。
@@ -74,3 +74,13 @@
 - 物件頁範本（含到期下架機制）——規劃好之後我可以比照這次的方式幫你把檔案寫好
 - 實際社區資料陸續補上，取代示範內容
 - 形象照、海報等視覺素材就緒後，換掉首頁 hero 跟關於頁的佔位區塊
+
+## 文章模板（結論先行的固定版面）
+
+文章頁由 `src/layouts/ArticleLayout.astro` 排版，樣式在 `src/styles/article.css`，目錄在 `src/components/ArticleToc.astro`。欄位與寫法看 `src/content/articles/_文章模板.md` 與 `src/content/config.ts`。
+
+- **由欄位自動產生**（不用寫在內文）：麵包屑、副標、作者與日期、封面、**本文重點**（`tldr`）、**常見問題**（`faq`，同時輸出 FAQPage 結構化資料）、文末聯絡與工具連結（`cta_tool`）、**資料來源**（`sources`）、**延伸閱讀**（`related`）、**Contents 目錄**（自動抓所有 H2，3 個以上才出現；左下角「目錄」按鈕，點開右側滑出，會標出現在讀到哪一段）、結構化資料（BlogPosting、BreadcrumbList、FAQPage）
+- **寫在內文的提示框**（Markdown 裡用 HTML 區塊，前後空一行，裡面照常寫 Markdown）：`<div class="sala-quote">` 金句、`<div class="sala-warn">` 提醒、`<div class="sala-key">` 關鍵數字卡、`<div class="sala-cta">` 行動卡（導到工具）、`<blockquote class="sala-says">` 莎拉實話說
+- 標題：`title` 是頁面上的 H1（寫有觀點的句子）；`seo_title` 是搜尋結果用的網頁標題（關鍵字＋年份）
+- H2 標題自己編號「一、二、三…」，段落約 150～200 字，重要數字獨立成短句；分組用 H3（不會進目錄）
+- 「鳳鳴重劃區建案整理」是由地圖資料產生的：`node scripts/make-article-jianan.cjs`（在 sala-tools 專案裡執行），輸出到這裡

@@ -1,0 +1,152 @@
+---
+// 文章版面：把「結論先行」的固定結構做成模板
+// 標題 → 副標 → 作者日期 → 封面 → 本文重點 → 內文（H2 分段）→ 常見問題 → 文末聯絡 → 資料來源 → 延伸閱讀
+// 另外有 Contents 目錄與結構化資料（文章、常見問題、麵包屑）。欄位說明見 src/content/config.ts。
+import { getCollection } from 'astro:content';
+import BaseLayout from './BaseLayout.astro';
+import ArticleToc from '../components/ArticleToc.astro';
+import '../styles/article.css';
+
+interface Props {
+  slug: string;
+  data: any; // 文章 frontmatter（型別見 content/config.ts）
+  headings: { depth: number; slug: string; text: string }[];
+}
+const { slug, data: d, headings } = Astro.props;
+
+const site = 'https://www.salahome.tw';
+const url = `${site}/articles/${slug}`;
+const fmt = (x: Date) => x.toLocaleDateString('zh-TW');
+const iso = (x: Date) => x.toISOString().slice(0, 10);
+
+// 目錄：所有 H2，加上常見問題
+const tocItems = headings.filter((h) => h.depth === 2).map((h) => ({ slug: h.slug, text: h.text }));
+if (d.faq.length) tocItems.push({ slug: 'faq', text: '常見問題' });
+
+// 延伸閱讀：用網址代號找到其他文章（找不到就略過）
+const all = await getCollection('articles');
+const related = (d.related as string[])
+  .map((s) => all.find((a) => a.slug === s))
+  .filter((a): a is NonNullable<typeof a> => Boolean(a));
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: d.title,
+    description: d.description || d.subtitle,
+    datePublished: iso(d.date),
+    dateModified: iso(d.updated || d.date),
+    inLanguage: 'zh-Hant',
+    url,
+    mainEntityOfPage: url,
+    ...(d.cover ? { image: new URL(d.cover, site).href } : {}),
+    keywords: d.tags,
+    author: { '@type': 'Person', name: d.author, url: site },
+    publisher: { '@type': 'RealEstateAgent', name: '蔡莎拉', url: site },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: '首頁', item: site },
+      { '@type': 'ListItem', position: 2, name: '不動產知識', item: `${site}/articles` },
+      { '@type': 'ListItem', position: 3, name: d.title, item: url },
+    ],
+  },
+  ...(d.faq.length
+    ? [{
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: (d.faq as { q: string; a: string }[]).map((f) => ({
+          '@type': 'Question',
+          name: f.q,
+          acceptedAnswer: { '@type': 'Answer', text: f.a },
+        })),
+      }]
+    : []),
+];
+---
+<BaseLayout
+  title={d.seo_title || d.title}
+  description={d.description || d.subtitle}
+  ogType="article"
+  image={d.cover}
+>
+  <Fragment slot="head">
+    {jsonLd.map((j) => <script type="application/ld+json" set:html={JSON.stringify(j)} />)}
+  </Fragment>
+
+  <article class="article">
+    <div class="container">
+      <div class="article-col">
+        <nav class="crumbs" aria-label="麵包屑">
+          <a href="/">首頁</a> ›
+          <a href="/articles">不動產知識</a> ›
+          <span>{d.category}</span>
+        </nav>
+
+        <p class="card-region">{d.category}{d.region ? `．${d.region}` : ''}</p>
+        <h1>{d.title}</h1>
+        {d.subtitle && <p class="article-sub">{d.subtitle}</p>}
+        <p class="article-meta">
+          撰文：{d.author} ／ 發布：{fmt(d.date)}{d.updated ? ` ／ 更新：${fmt(d.updated)}` : ''}
+        </p>
+
+        {d.cover && <img class="article-cover" src={d.cover} alt={d.cover_alt || d.title} width="1200" height="630" />}
+
+        {d.tldr.length > 0 && (
+          <div class="sala-tldr">
+            <strong>本文重點</strong>
+            <ul>{(d.tldr as string[]).map((t) => <li set:html={t} />)}</ul>
+          </div>
+        )}
+
+        <div class="prose article-body">
+          <slot />
+        </div>
+
+        {d.faq.length > 0 && (
+          <section class="sala-faq" id="faq">
+            <h2>常見問題</h2>
+            {(d.faq as { q: string; a: string }[]).map((f) => (
+              <details>
+                <summary>{f.q}</summary>
+                <p>{f.a}</p>
+              </details>
+            ))}
+          </section>
+        )}
+
+        <div class="sala-cta end-cta">
+          <strong>想聊聊你的狀況？</strong>
+          <p>數字只是起點。你的物件、你的預算，直接跟我聊，我幫你抓數字。</p>
+          <p class="cta-row">
+            {d.cta_tool && <a class="btn btn-outline-light" href={d.cta_tool.href} target="_blank" rel="noopener">{d.cta_tool.label}</a>}
+            <a class="btn btn-gold" href="https://line.me/ti/p/@saLa193" target="_blank" rel="noopener">LINE 詢問蔡莎拉</a>
+          </p>
+        </div>
+
+        {d.sources && <p class="sala-src">{d.sources}</p>}
+
+        {related.length > 0 && (
+          <aside class="sala-related" aria-label="延伸閱讀">
+            <strong>📌 延伸閱讀</strong>
+            <ul>
+              {related.map((r) => (
+                <li>
+                  <a href={`/articles/${r.slug}`}>
+                    <span>{r.data.title}</span>
+                    {r.data.description && <small>{r.data.description}</small>}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </aside>
+        )}
+      </div>
+    </div>
+  </article>
+
+  <ArticleToc items={tocItems} />
+</BaseLayout>

@@ -1,0 +1,62 @@
+---
+// 文章目錄（Contents）：左下角一顆「目錄」按鈕，點開是右側滑出的面板，列出所有 H2；
+// 捲動時自動標出現在讀到哪一段。標題編號（一、二、三…）由作者自己寫在標題文字裡。
+interface Props {
+  items: { slug: string; text: string }[];
+}
+const { items } = Astro.props;
+---
+{items.length >= 3 && (
+  <>
+    <button type="button" class="toc-btn" id="toc-open" aria-controls="toc-panel" aria-expanded="false">
+      <span aria-hidden="true">☰</span> 目錄
+    </button>
+    <div class="toc-backdrop" id="toc-backdrop" hidden></div>
+    <nav class="toc-panel" id="toc-panel" aria-label="文章目錄" aria-hidden="true">
+      <div class="toc-head">
+        <strong>Contents　目錄</strong>
+        <button type="button" class="toc-close" id="toc-close" aria-label="關閉目錄">✕</button>
+      </div>
+      <ol class="toc-list">
+        {items.map((h) => (
+          <li><a href={`#${h.slug}`} data-toc={h.slug}>{h.text}</a></li>
+        ))}
+      </ol>
+    </nav>
+  </>
+)}
+
+<script>
+  const openBtn = document.getElementById('toc-open');
+  const panel = document.getElementById('toc-panel');
+  const backdrop = document.getElementById('toc-backdrop');
+  if (openBtn && panel && backdrop) {
+    const setOpen = (on: boolean) => {
+      panel.classList.toggle('is-open', on);
+      panel.setAttribute('aria-hidden', String(!on));
+      openBtn.setAttribute('aria-expanded', String(on));
+      backdrop.hidden = !on;
+      if (on) (panel.querySelector('a') as HTMLElement | null)?.focus({ preventScroll: true });
+    };
+    openBtn.addEventListener('click', () => setOpen(!panel.classList.contains('is-open')));
+    document.getElementById('toc-close')?.addEventListener('click', () => setOpen(false));
+    backdrop.addEventListener('click', () => setOpen(false));
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') setOpen(false);
+    });
+    // 點目錄項目：關閉面板並捲到該段
+    panel.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => setOpen(false)));
+
+    // 標出現在讀到哪一段
+    const links = new Map<string, HTMLElement>();
+    panel.querySelectorAll<HTMLElement>('a[data-toc]').forEach((a) => links.set(a.dataset.toc!, a));
+    const heads = [...links.keys()].map((id) => document.getElementById(id)).filter(Boolean) as HTMLElement[];
+    const mark = () => {
+      let current = heads[0]?.id;
+      for (const h of heads) if (h.getBoundingClientRect().top <= 140) current = h.id;
+      links.forEach((a, id) => a.classList.toggle('is-current', id === current));
+    };
+    document.addEventListener('scroll', mark, { passive: true });
+    mark();
+  }
+</script>
